@@ -63,5 +63,23 @@
                 return "Problema ao validar o email";
             }
         }
+
+        public function alterar_senha($usuario) {
+            $sql = "UPDATE usuarios SET senha = ? WHERE id = ?";
+            try
+            {
+                $stm = $this->db->prepare($sql);
+                $stm->bindValue(1, $usuario->getSenha());
+                $stm->bindValue(2, $usuario->getId_usuario());
+                $stm->execute();
+                $this->db = null;
+                return "Senha alterada com sucesso!";
+            }
+            catch(PDOException $e)
+            {
+                $this->db = null;
+                return "Problema na alteração da senha!";
+            }
+        }
     } //fim da classe
 ?>

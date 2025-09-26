@@ -129,6 +129,7 @@
 
         public function esqueci_senha() {
             $msg = "";
+            $link = "";
             $msg_email = "Será enviado um email para recuperar a senha!";
             if($_POST)
             {
@@ -148,18 +149,18 @@
                         {
                             //enviar email
                             $assunto = "Recuperação de senha - Meu Pet Sumiu";
-                            $link = "index.php?controle=usuarioController&metodo=trocar_senha&id=" . base64_encode($retorno[0]->id);
+                            $link = "http://localhost/meu_pet_sumiu/index.php?controle=usuarioController&metodo=trocar_senha&id=" . base64_encode($retorno[0]->id);
                             $nomeDestino = $retorno[0]->nome;
                             $destino = $retorno[0]->email;
                             $remetente = "seu_email";
                             $nomeRemetente = "meu pet sumiu";
                             $mensagem = "<h2>Senhor(a) " . $nomeDestino . "</h2> <br> <p>Recebemos a solicitação de recuperação de senha.
                             Caso não tenha sido requerida por você desconsidere esta mensagem. Caso contrário click no link abaixo para redefinir sua senha.</p> 
-                            <a href = '" . $link . "' >Clique Aqui<a/>
+                            <a href = '" . $link . "' >Clique Aqui</a>
                             <br><br>
                             <p>Atenciosamente <br>" . $nomeRemetente . "</p>";
 
-                            $ret = sendMail($assunto, $mensagem, $remetente, $nomeRemetente, $destino, $nomeDestino);
+                            /*$ret = sendMail($assunto, $mensagem, $remetente, $nomeRemetente, $destino, $nomeDestino);
                             if($ret)
                             {
                                 $msg_email = "Foi enviado um email de recuperação de senha. Verifique!";
@@ -167,7 +168,7 @@
                             else 
                             {
                                 $msg_email = "Problema no envio do email de recuperação de senha. Tente mais tarde!!!";
-                            }
+                            }*/
                         }
                         else 
                         {
@@ -181,6 +182,45 @@
                 }
             }
             require_once "views/form_email.php";
+        }
+
+        public function trocar_senha() {
+            $msg = array("", "");
+            $erro = false;
+            if(isset($_GET["id"]))
+            {
+                $id = base64_decode($_GET["id"]);
+                if($_POST)
+                {
+                    if(empty($_POST["senha"]))
+                    {
+                        $msg[0] = "Senha obrigatória";
+                        $erro = true;
+                    }
+                    if(empty($_POST["confirmar_senha"]))
+                    {
+                        $msg[1] = "Confirme a senha";
+                        $erro = true;
+                    }
+                    
+                    if(!$erro && $_POST["senha"] !== $_POST["confirmar_senha"])
+                    {
+                         $msg[0] = "Senhas não são iguais";
+                         $erro = true; 
+                    }
+
+                    if(!$erro)
+                    {
+                        // alterar senha no BD
+                        $usuario = new Usuarios(id_usuario:$_POST["id_usuario"], senha: password_hash($_POST["senha"], PASSWORD_DEFAULT));
+                        $usuarioDAO = new usuarioDAO();
+                        $retorno = $usuarioDAO->alterar_senha($usuario);
+                        header("location:index.php?controle=usuarioController&metodo=login");
+                    }
+                    
+                }
+                require_once "views/trocar_senha.php";
+            }
         }
     } // fim da classe
 ?>
